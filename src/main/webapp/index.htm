@@ -1,0 +1,382 @@
+<html>
+<head>
+	<title>Squares</title>
+
+	<link href='http://fonts.googleapis.com/css?family=Bubbler+One' rel='stylesheet' type='text/css'>
+
+	<link rel='stylesheet' href='css/styles.css' type='text/css'></link>
+
+</head>
+<body>
+
+	<div id="config-bar">
+		<div id='config-content'>
+			<p>config</p>
+			<table id='config-table' class='hidden'>
+				<tr>
+				<td>
+					Harmony<input type='range' name='harmony' min='1' max='10'>
+				</td>
+				</tr>
+				<tr>
+				<td>
+					Entropy<input type='range' name='entropy' min='1' max='10'>
+				</tr>
+				</td>
+				<tr>
+				<td>
+					<input id="submit" type="button" value="Submit">
+				</td>
+				</tr>
+			</table>
+		</div>
+	</div>
+
+	<div id="gen-piano">
+		<table>
+			<tr>
+				<td> &nbsp; </td>
+				<td id="gen-key-c#"> c# </td>
+				<td> &nbsp; </td>
+				<td id="gen-key-d#"> d# </td>
+				<td> &nbsp; </td>
+				<td> &nbsp; </td>
+				<td id="gen-key-f#"> f# </td>
+				<td> &nbsp; </td>
+				<td id="gen-key-g#"> g# </td>
+				<td> &nbsp; </td>
+				<td id="gen-key-a#"> a# </td>
+				<td> &nbsp; </td>
+			</tr>
+			<tr>
+				<td id="gen-key-c"> c </td>
+				<td> &nbsp; </td>
+				<td id="gen-key-d"> d </td>
+				<td> &nbsp; </td>
+				<td id="gen-key-e"> e </td>
+				<td id="gen-key-f"> f </td>
+				<td> &nbsp; </td>
+				<td id="gen-key-g"> g </td>
+				<td> &nbsp; </td>
+				<td id="gen-key-a"> a </td>
+				<td> &nbsp; </td>
+				<td id="gen-key-b"> b </td>
+			</tr>
+		</table>
+	</div>
+
+	<div id="middle">
+		<p>yo
+	</div>
+
+
+	<div id="piano">
+		<table>
+			<tr>
+				<td> &nbsp; </td>
+				<td> c# </td>
+				<td> &nbsp; </td>
+				<td> d# </td>
+				<td> &nbsp; </td>
+				<td> &nbsp; </td>
+				<td> f# </td>
+				<td> &nbsp; </td>
+				<td> g# </td>
+				<td> &nbsp; </td>
+				<td> a# </td>
+				<td> &nbsp; </td>
+			</tr>
+			<tr>
+				<td> c </td>
+				<td> &nbsp; </td>
+				<td> d </td>
+				<td> &nbsp; </td>
+				<td> e </td>
+				<td> f </td>
+				<td> &nbsp; </td>
+				<td> g </td>
+				<td> &nbsp; </td>
+				<td> a </td>
+				<td> &nbsp; </td>
+				<td> b </td>
+			</tr>
+		</table>
+	</div>
+
+</body>
+
+
+<script src="http://code.jquery.com/jquery-latest.min.js" type="text/javascript"></script>
+<script src="http://code.jquery.com/ui/1.10.3/jquery-ui.min.js"></script>
+<script src="libs/timbre.js" type="text/javascript"></script>
+<script src="libs/subcollider.js" type="text/javascript"></script>
+<script src="js/keyboard.js" type="text/javascript"></script>
+<script src="js/counterpoint.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+	
+	var noteMap = new Object();
+	noteMap[60] = " c ";
+	noteMap[61] = " c# ";
+	noteMap[62] = " d ";
+	noteMap[63] = " d# ";
+	noteMap[64] = " e ";
+	noteMap[65] = " f ";
+	noteMap[66] = " f# ";
+	noteMap[67] = " g ";
+	noteMap[68] = " g# ";
+	noteMap[69] = " a ";
+	noteMap[70] = " a# ";
+	noteMap[71] = " b ";
+
+	function animateKey(key) {
+		$(key).animate({
+			opacity: 0.75,
+			color: "white",
+			backgroundColor: "red"
+		}, 1000);
+	}
+
+	startTheMusic();
+
+	timbre.rec(function(output) {
+
+		var msec  = timbre.timevalue("bpm140 l8");
+		var synth = T("OscGen", {env:T("perc", {r:msec, ar:true})});
+
+		T("interval", {interval:msec}, function(count) {
+			if (count < cantusNotes.length) {
+				synth.noteOn(cantusNotes[count], 100);
+				var key = $('#gen-piano td');
+				$.each(key, function(i, v) {
+					if ($(v).text() == noteMap[cantusNotes[count]]) {
+						console.log($(v).text());
+						console.log(noteMap[cantusNotes[count]]);
+						animateKey(v);
+					}
+				});
+			} else {
+				output.done();
+			}
+		}).start();
+
+		output.send(synth);
+
+	}).then(function(result) {
+
+		var L = T("buffer", {buffer:result, loop:false});
+		var R = T("buffer", {buffer:result, loop:false});
+
+		var num = 400;
+		var duration = L.duration;
+
+		R.pitch = (duration * (num - 1)) / (duration * num);
+
+		T("delay", {time:"bpm140 l16", fb:0.1, cross:true},
+			T("pan", {pos:-0.6}, L), T("pan", {pos:+0.6}, R)
+		).play();
+
+	});
+
+	$(document).ready(function() {
+
+		var bar = $('#config-bar');
+		var config_text = $($(bar.children()[0]).children()[0]);
+		var config_table = $($(bar.children()[0]).children()[1]);
+		var submit = $('#submit');
+
+		// submit
+		submit.click(function() {
+
+			bar.animate(
+				{ 'top': '+=20%' },
+				450,
+				'swing',
+				function() {
+					bar.removeClass('click');
+					// config-table
+					config_table.fadeOut(200, function() {
+						config_text.fadeIn(200);
+					});
+				}
+			);
+
+
+		});
+		// submit
+
+
+		// config bar animators
+		bar.click(function () {
+			if (!bar.hasClass('click')) {
+				bar.animate(
+					{ 'top': '-=20%' },
+					350,
+					'swing',
+					function() {
+						bar.addClass('click');
+						config_text.fadeOut(200, function() {
+							config_table.fadeIn(200);
+						});
+					}
+				);
+			}
+		});
+
+
+		// adjust pianos
+		$('#gen-piano td').width($(document).width() / 12);
+		$('#gen-piano td').height($(document).height() / 10 );
+		$.each($('#piano').find('td'), function(i, v) {
+			if (!this.text) {
+				$(this).width(500);
+			}
+		});
+
+		$('#piano td').width($(document).width() / 12);
+		$('#piano td').height($(document).height() / 10 );
+		$.each($('#piano').find('td'), function(i, v) {
+			if (!this.text) {
+				$(this).width(500);
+			}
+		});
+
+
+		// playable piano
+		var synth = T("OscGen", {wave:"sine", mul:0.25}).play();
+
+		var keydict = T("ndict.key");
+		var midicps = T("midicps");
+		T("keyboard").on("keydown", function(e) {
+			var midi = keydict.at(e.keyCode);
+			if (midi) {
+				var freq = midicps.at(midi);
+				synth.noteOnWithFreq(freq, 100);
+				findKey(freq);
+			}
+		}).on("keyup", function(e) {
+			var midi = keydict.at(e.keyCode);
+			if (midi) {
+				synth.noteOff(midi, 100);
+				$.each($('#piano').find('table tr').children(), function(i, v) {
+					$(v).animate({
+						opacity: 1,
+						color: "black",
+						backgroundColor: "blue"
+					}, 100);
+				});
+			}
+		}).start();
+
+	});
+
+
+	// findKey
+	function findKey(freq) {
+		$.each($('#piano').find('table tr').children(), function(i, v) {
+			if (freq === 130.8127826502993 || freq === 130.8127826502993*2 || freq === 130.8127826502993*3) {
+				if ($(v).text() == ' c ') {
+					$(v).animate({
+						opacity: 0.75,
+						color: "white",
+						backgroundColor: "red"
+					}, 100);
+				}
+			} else if (freq === 138.59131548843604 || freq === 138.59131548843604*2 || freq === 138.59131548843604*3) {
+				if ($(v).text() == ' c# ') {
+					$(v).animate({
+						opacity: 0.75,
+						color: "white",
+						backgroundColor: "red"
+					}, 50);
+				}
+			} else if (freq === 146.8323839587038 || freq === 146.8323839587038*2 || freq === 146.8323839587038*3) {
+				if ($(v).text() == ' d ') {
+					$(v).animate({
+						opacity: 0.75,
+						color: "white",
+						backgroundColor: "red"
+					}, 50);
+				}
+			} else if (freq === 155.56349186104046 || freq === 155.56349186104046*2 || freq === 155.56349186104046*3) {
+				if ($(v).text() == ' d# ') {
+					$(v).animate({
+						opacity: 0.75,
+						color: "white",
+						backgroundColor: "red"
+					}, 50);
+				}
+			} else if (freq === 164.81377845643496 || freq === 164.81377845643496*2 || freq === 164.81377845643496*3) {
+				if ($(v).text() == ' e ') {
+					$(v).animate({
+						opacity: 0.75,
+						color: "white",
+						backgroundColor: "red"
+					}, 50);
+				}
+			} else if (freq === 174.61411571650194 || freq === 174.61411571650194*2 || freq === 174.61411571650194*3) {
+				if ($(v).text() == ' f ') {
+					$(v).animate({
+						opacity: 0.75,
+						color: "white",
+						backgroundColor: "red"
+					}, 50);
+				}
+			} else if (freq === 184.9972113558172 || freq === 184.9972113558172*2 || freq === 184.9972113558172*3) {
+				if ($(v).text() == ' f# ') {
+					$(v).animate({
+						opacity: 0.75,
+						color: "white",
+						backgroundColor: "red"
+					}, 50);
+				}
+			} else if (freq === 195.99771799087463 || freq === 195.99771799087463*2 || freq === 195.99771799087463*3) {
+				if ($(v).text() == ' g ') {
+					$(v).animate({
+						opacity: 0.75,
+						color: "white",
+						backgroundColor: "red"
+					}, 50);
+				}
+			} else if (freq === 207.65234878997256 || freq === 207.65234878997256*2 || freq === 207.65234878997256*3) {
+				if ($(v).text() == ' g# ') {
+					$(v).animate({
+						opacity: 0.75,
+						color: "white",
+						backgroundColor: "red"
+					}, 50);
+				}
+			} else if (freq === 220 || freq === 220*2 || freq === 220*3) {
+				if ($(v).text() == ' a ') {
+					$(v).animate({
+						opacity: 0.75,
+						color: "white",
+						backgroundColor: "red"
+					}, 50);
+				}
+			} else if (freq === 233.08188075904496 || freq === 233.08188075904496*2 || freq === 233.08188075904496*3) {
+				if ($(v).text() == ' a# ') {
+					$(v).animate({
+						opacity: 0.75,
+						color: "white",
+						backgroundColor: "red"
+					}, 50);
+				}
+			} else if (freq === 246.94165062806206 || freq === 246.94165062806206*2 || freq === 246.94165062806206*3) {
+				if ($(v).text() == ' b ') {
+					$(v).animate({
+						opacity: 0.75,
+						color: "white",
+						backgroundColor: "red"
+					}, 50);
+				}
+			}
+		});
+	}
+	// findKey
+
+</script>
+
+
+
+</html>

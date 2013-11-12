@@ -1,0 +1,48 @@
+body {
+	font-family: 'Bubbler One', sans-serif;
+}
+
+.hidden {
+	display: none;
+}
+
+#config-bar {
+	padding: 1%;
+	position: fixed;
+	left: 0;
+	top: 90%;
+	z-index: 1;
+	background: #E8E8E8;
+	width: 100%;
+	height: 100%;
+}
+
+#content > * {
+	height: 100%;
+}
+
+#content img {
+
+}
+
+#gen-piano {
+	position: absolute;
+	top: 0;
+	left: 0;
+}
+#gen-piano td {
+	background-color: blue;
+	text-align: center;
+	width: 120px;
+}
+
+#piano {
+	position: absolute;
+	top: 70%;
+	left: 0;
+}
+#piano td {
+	background-color: blue;
+	text-align: center;
+	width: 120px;
+}
