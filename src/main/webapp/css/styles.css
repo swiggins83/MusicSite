@@ -1,5 +1,6 @@
 body {
 	font-family: 'Bubbler One', sans-serif;
+	background-color: #F5F5F5;
 }
 
 .hidden {
@@ -17,21 +18,23 @@ body {
 	width: 100%;
 	height: 100%;
 }
+#config-text {
+	font-size: 20pt;
+	text-align:center;
+}
 
 #notes, #content {
 	position: absolute;
 	left: 0;
 	text-align: center;
-	background-color: #F5F5F5;
 	width: 100%;
 }
 #notes {
 	top: 20%;
-	height: 25%;
+	height: 15%;
 }
 #content {
-	top: 45%;
-	height: 65%;
+	top: 35%;
 }
 #keyboard_help {
 	position:absolute;
@@ -50,7 +53,7 @@ body {
 }
 #piano {
 	position: absolute;
-	top: 70%;
+	top: 65%;
 	left: 0;
 }
 #gen-piano td, #piano td {

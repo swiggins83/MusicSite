@@ -11,7 +11,7 @@
 
 	<div id="config-bar">
 		<div id='config-content'>
-			<p style="font-size:20pt; text-align: center">. . . </p>
+			<p id='config-text'>config</p>
 			<table id='config-table' class='hidden'>
 				<tr>
 				<td>
@@ -56,12 +56,46 @@
 	</div>
 
 	<div id="notes">
-		<p>here's some contrapuntally generated notes from a theme in C.</p>
+		<p>here's some contrapuntally generated notes from a theme in C</p>
 	</div>
 	<li id="keyboard_help" class="hidden"><a href="#"></a></li>
 	<div id="content">
 		<p>play along using the highlighted notes above!</p>
 		<p id="help">how?</p>
+		<p id="help">halp?</p>
+	</div>
+
+	<div id="piano">
+		<table>
+			<tr>
+				<td> &nbsp; </td>
+				<td id="key-c#"> c# </td>
+				<td> &nbsp; </td>
+				<td id="key-d#"> d# </td>
+				<td> &nbsp; </td>
+				<td> &nbsp; </td>
+				<td id="key-f#"> f# </td>
+				<td> &nbsp; </td>
+				<td id="key-g#"> g# </td>
+				<td> &nbsp; </td>
+				<td id="key-a#"> a# </td>
+				<td> &nbsp; </td>
+			</tr>
+			<tr>
+				<td id="key-c"> c </td>
+				<td> &nbsp; </td>
+				<td id="key-d"> d </td>
+				<td> &nbsp; </td>
+				<td id="key-e"> e </td>
+				<td id="key-f"> f </td>
+				<td> &nbsp; </td>
+				<td id="key-g"> g </td>
+				<td> &nbsp; </td>
+				<td id="key-a"> a </td>
+				<td> &nbsp; </td>
+				<td id="key-b"> b </td>
+			</tr>
+		</table>
 	</div>
 
 </body>
@@ -94,14 +128,14 @@
 		noteMap[10] = "a\\#";
 		noteMap[11] = "b";
 
-		var LOOP = false;
+		var LOOP = true;
 
 		function animateKey(key, on) {
 			$(key).animate({
 				opacity: 0.75,
 				color: "white",
 				backgroundColor: "red"
-			}, 100)
+			}, 1000)
 		}
 
 		function animateOpacity(v, on) {
@@ -119,6 +153,8 @@
 		// adjust pianos
 		$('#gen-piano td').width($(document).width() / 12);
 		$('#gen-piano td').height($(document).height() / 10 );
+		$('#piano td').width($(document).width() / 12);
+		$('#piano td').height($(document).height() / 10 );
 
 		var keyboard_help = $('#keyboard_help');
 		keyboard_help.css('left', ($(document).width() / 2) - (keyboard_help.width() / 2));
@@ -130,43 +166,45 @@
 			// adjust pianos
 			$('#gen-piano td').width($(document).width() / 12);
 			$('#gen-piano td').height($(document).height() / 10 );
+			$('#piano td').width($(document).width() / 12);
+			$('#piano td').height($(document).height() / 10 );
 
 			keyboard_help.css('left', ($(document).width() / 2) - (keyboard_help.width() / 2));
 			content.css('left', ($(document).width() / 2) - (content.width() / 2));
 
 		});
 
-		var s = '';
+		var s = 'theme: ';
 		for (n in cantusNotes) {
-
 			if (n < SONG_LENGTH) {
 				s += noteMap[cantusNotes[n] % 12].replace('\\#','#') + " ";
 			}
-
 		}
-		content.html(s);
+		$(content.children()[0]).html(s);
+		s = 'species one counterpoint: ';
+		for (n in speciesOneNotes) {
+			if (n < SONG_LENGTH) {
+				s += noteMap[speciesOneNotes[n] % 12].replace('\\#','#') + " ";
+			}
+		}
+		$(content.children()[1]).html(s);
+		s = 'species two counterpoint: ';
+		for (n in speciesTwoNotes) {
+			if (n < SONG_LENGTH) {
+				s += noteMap[speciesTwoNotes[n][0] % 12].replace('\\#','#') + " ";
+				s += noteMap[speciesTwoNotes[n][1] % 12].replace('\\#','#') + " ";
+			}
+		}
+		$(content.children()[2]).html(s);
+
+		if (minor) {
+			$($('#notes').children()[0]).html('here\'s some contrapuntally generated notes from a theme in C minor');
+		}
 
 		var bar = $('#config-bar');
 		var config_text = $($(bar.children()[0]).children()[0]);
 		var config_table = $($(bar.children()[0]).children()[1]);
 		var submit = $('#submit');
-		var help = $('#help');
-
-		help.click(function() {
-
-			if (!keyboard_help.hasClass('click')) {
-				//animateOpacity(keyboard_help, true);
-				keyboard_help.slideToggle("slow");
-				keyboard_help.addClass('click');
-				keyboard_help.css('z-index', '1');
-			} else {
-				animateOpacity(keyboard_help, false);
-				keyboard_help.removeClass('click');
-				keyboard_help.slideToggle("slow");
-				keyboard_help.css('z-index', '0');
-			}
-
-		});
 
 		bar.click(function () {
 
@@ -200,13 +238,32 @@
 
 		timbre.rec(function(output) {
 
-			var msec  = timbre.timevalue("bpm140 l8");
+			var msec  = timbre.timevalue("bpm140 l16");
 			var synth = T("OscGen", {env:T("perc", {r:msec, ar:true})});
 
 			T("interval", {interval:msec}, function(count) {
 				if (count < cantusNotes.length) {
 					synth.noteOn(cantusNotes[count], 100);
 					animateKey($('#gen-piano').find('#gen-key-'+noteMap[cantusNotes[count] % 12]), true);
+					animateKey($('#piano').find('#key-'+noteMap[speciesOneNotes[count] % 12]), true);
+				} else {
+					output.done();
+				}
+			}).start();
+
+			T("interval", {interval:msec}, function(count) {
+				if (count < speciesOneNotes.length) {
+					synth.noteOn(speciesOneNotes[count], 100);
+					animateKey($('#piano').find('#key-'+noteMap[speciesOneNotes[count] % 12]), true);
+				} else {
+					output.done();
+				}
+			}).start();
+
+			T("interval", {interval:msec}, function(count) {
+				if (count < speciesTwoNotes.length) {
+					synth.noteOn(speciesTwoNotes[count][0], 50);
+					synth.noteOn(speciesTwoNotes[count][1], 50);
 				} else {
 					output.done();
 				}
@@ -224,8 +281,8 @@
 
 			R.pitch = (duration * (num - 1)) / (duration * num);
 
-			T("delay", {time:"bpm140 l16", fb:0.1, cross:true},
-				T("pan", {pos:-0.6}, L), T("pan", {pos:+0.6}, R)
+			T("delay", {time:"bpm140 l1", fb:0.1, cross:true},
+				T("pan", {pos:-0.5}, L), T("pan", {pos:+0.5}, R)
 			).play();
 
 		});

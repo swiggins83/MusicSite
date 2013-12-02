@@ -1,4 +1,6 @@
-var SONG_LENGTH = 8;
+var SONG_LENGTH = 16;
+
+var minor = false;
 
 var cantusNotes = [];
 var speciesOneNotes = [];
@@ -105,7 +107,7 @@ function startTheMusic() {
 	// randomize major/minor
 	if (getRandom(2) === 0) {
 		majorNotes = minorNotes;
-		var minor = true;
+		minor = true;
 	}
 
 	// create theme
