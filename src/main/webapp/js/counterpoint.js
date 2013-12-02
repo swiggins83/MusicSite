@@ -1,4 +1,4 @@
-var SONG_LENGTH = 16;
+var SONG_LENGTH = 32;
 
 var minor = false;
 

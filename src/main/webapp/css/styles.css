@@ -5,7 +5,19 @@ body {
 
 .hidden {
 	opacity: 0;
-	height: 0px;
+}
+
+#veil {
+	height: 90%;
+	width: 100%;
+	background: #F5F5F5;
+	z-index: 2;
+}
+#veil p {
+	position: absolute;
+	top:50%;
+	left: 50%;
+	text-align: center;
 }
 
 #config-bar {
