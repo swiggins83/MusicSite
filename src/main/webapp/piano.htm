@@ -1,0 +1,239 @@
+<html>
+<head>
+	<title>Squares</title>
+
+	<link href='http://fonts.googleapis.com/css?family=Bubbler+One' rel='stylesheet' type='text/css'>
+
+	<link rel='stylesheet' href='css/styles.css' type='text/css'></link>
+
+</head>
+<body>
+
+	<div id="config-bar">
+		<div id='config-content'>
+			<p>config</p>
+			<table id='config-table' class='hidden'>
+				<tr>
+				<td>
+					Harmony<input type='range' name='harmony' min='1' max='10'>
+				</td>
+				</tr>
+				<tr>
+				<td>
+					Entropy<input type='range' name='entropy' min='1' max='10'>
+				</tr>
+				</td>
+				<tr>
+				<td>
+					<input id="submit" type="button" value="Submit">
+				</td>
+				</tr>
+			</table>
+		</div>
+	</div>
+
+	<li id="keyboard_help" class="hidden"><a href="#"></a></li>
+	<div id="content">
+		<p id="help">how?</p>
+	</div>
+
+
+	<div id="piano">
+		<table>
+			<tr>
+				<td> &nbsp; </td>
+				<td id="key-c#"> c# </td>
+				<td> &nbsp; </td>
+				<td id="key-d#"> d# </td>
+				<td> &nbsp; </td>
+				<td> &nbsp; </td>
+				<td id="key-f#"> f# </td>
+				<td> &nbsp; </td>
+				<td id="key-g#"> g# </td>
+				<td> &nbsp; </td>
+				<td id="key-a#"> a# </td>
+				<td> &nbsp; </td>
+			</tr>
+			<tr>
+				<td id="key-c"> c </td>
+				<td> &nbsp; </td>
+				<td id="key-d"> d </td>
+				<td> &nbsp; </td>
+				<td id="key-e"> e </td>
+				<td id="key-f"> f </td>
+				<td> &nbsp; </td>
+				<td id="key-g"> g </td>
+				<td> &nbsp; </td>
+				<td id="key-a"> a </td>
+				<td> &nbsp; </td>
+				<td id="key-b"> b </td>
+			</tr>
+		</table>
+	</div>
+
+</body>
+
+
+<script src="http://code.jquery.com/jquery-latest.min.js" type="text/javascript"></script>
+<script src="http://code.jquery.com/ui/1.10.3/jquery-ui.min.js"></script>
+<script src="libs/timbre.js" type="text/javascript"></script>
+<script src="libs/subcollider.js" type="text/javascript"></script>
+<script src="js/keyboard.js" type="text/javascript"></script>
+<script src="js/counterpoint.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+
+	var noteMap = new Object();
+	noteMap[0] = "c";
+	noteMap[1] = "c\\#";
+	noteMap[2] = "d";
+	noteMap[3] = "d\\#";
+	noteMap[4] = "e";
+	noteMap[5] = "f";
+	noteMap[6] = "f\\#";
+	noteMap[7] = "g";
+	noteMap[8] = "g\\#";
+	noteMap[9] = "a";
+	noteMap[10] = "a\\#";
+	noteMap[11] = "b";
+
+	var LOOP = false;
+
+	function animateKey(key, on) {
+		if (on) {
+			$(key).animate({
+				opacity: 0.75,
+				color: "white",
+				backgroundColor: "red"
+			}, 100);
+		} else {
+			$(key).animate({
+				opacity: 1,
+				color: "black",
+				backgroundColor: "#b8b8b8"
+			}, 100);
+		}
+	}
+
+	function animateOpacity(v, on) {
+		if (on) {
+			$(v).animate({
+				opacity: 1
+			}, 600);
+		} else {
+			$(v).animate({
+				opacity: 0
+			}, 200);
+		}
+	}
+
+	startTheMusic();
+
+	$(document).ready(function() {
+
+		$('#piano td').width($(document).width() / 12);
+		$('#piano td').height($(document).height() / 10 );
+
+		var keyboard_help = $('#keyboard_help');
+		keyboard_help.css('left', ($(document).width() / 2) - (keyboard_help.width() / 2));
+		$('#content').css('left', ($(document).width() / 2) - ($('#content').width() / 2));
+
+		$(window).resize(function() {
+
+			// adjust pianos
+			$('#gen-piano td').width($(document).width() / 12);
+			$('#gen-piano td').height($(document).height() / 10 );
+
+			$('#piano td').width($(document).width() / 12);
+			$('#piano td').height($(document).height() / 10 );
+
+			var keyboard_help = $('#keyboard_help');
+			keyboard_help.css('left', ($(document).width() / 2) - (keyboard_help.width() / 2));
+			$('#content').css('left', ($(document).width() / 2) - ($('#content').width() / 2));
+		});
+
+		console.log(cantusNotes);
+
+		var bar = $('#config-bar');
+		var config_text = $($(bar.children()[0]).children()[0]);
+		var config_table = $($(bar.children()[0]).children()[1]);
+		var submit = $('#submit');
+		var help = $('#help');
+
+		help.click(function() {
+
+			if (!keyboard_help.hasClass('click')) {
+				//animateOpacity(keyboard_help, true);
+				keyboard_help.slideToggle("slow");
+				keyboard_help.addClass('click');
+				keyboard_help.css('z-index', '1');
+			} else {
+				animateOpacity(keyboard_help, false);
+				keyboard_help.removeClass('click');
+				keyboard_help.slideToggle("slow");
+				keyboard_help.css('z-index', '0');
+			}
+
+		});
+
+		bar.click(function () {
+
+			if (!bar.hasClass('click')) {
+				animateOpacity(config_text, false);
+				animateOpacity(config_table, true);
+				bar.animate(
+					{ 'top': '-=20%' },
+					350,
+					'swing',
+					function() {
+						bar.addClass('click');
+					}
+				);
+			}
+
+		});
+
+		submit.click(function() {
+
+			animateOpacity(config_table, false);
+			animateOpacity(config_text, true);
+			bar.animate(
+				{ 'top': '+=20%' },
+				450,
+				'swing',
+				function() {
+					bar.removeClass('click');
+				}
+			);
+
+		});
+
+	});
+
+	// playable piano
+	//
+	var piano = T("OscGen", {wave:"pulse", mul:0.25}).play();
+
+	var keydict = T("ndict.key");
+	var midicps = T("midicps");
+	T("keyboard").on("keydown", function(e) {
+		console.log(e.keyCode);
+		var midi = keydict.at(e.keyCode);
+		if (midi) {
+			var freq = midicps.at(midi);
+			piano.noteOnWithFreq(freq, 50);
+			animateKey($('#piano').find('#key-'+noteMap[midi % 12]), true);
+		}
+	}).on("keyup", function(e) {
+		var midi = keydict.at(e.keyCode);
+		if (midi) {
+			piano.noteOff(midi, 50);
+			animateKey($('#piano').find('#key-'+noteMap[midi % 12]), false);
+		}
+	}).start();
+
+</script>
+
+
+
+</html>

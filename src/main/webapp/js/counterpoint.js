@@ -105,6 +105,7 @@ function startTheMusic() {
 	// randomize major/minor
 	if (getRandom(2) === 0) {
 		majorNotes = minorNotes;
+		var minor = true;
 	}
 
 	// create theme
@@ -130,8 +131,11 @@ function startTheMusic() {
 
 	}
 
+	console.log('// Theme');
 	console.log(cantusNotes);
+	console.log('// Species one counterpoint');
 	console.log(speciesOneNotes);
+	console.log('// Species two counterpoint');
 	console.log(speciesTwoNotes);
 
 }
